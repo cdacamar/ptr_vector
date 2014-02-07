@@ -143,6 +143,20 @@ public:
 		}
 	}
 
+   template <typename U>
+   void resize(size_type count, typename std::remove_reference<U&>::type const& value) {
+      if (_vec.size() > count) {
+			for (size_type n = _vec.size() - count;n != 0;--n) {
+				pop_back();
+			}
+		}
+		else {
+			for (size_type n = count - _vec.size();n != 0;--n) {
+				push_back<U>(value);
+			}
+		}
+   }
+
 	void swap(ptr_vector& other) {_vec.swap(other);}
 
 	void reset_at(std::size_t pos, const_reference value) {_vec.at(pos).reset(new value_type(value));}
@@ -268,8 +282,5 @@ public:
 		_ptr_vec_const_itr<T> operator+(std::size_t lhs, const _ptr_vec_const_itr<T>& rhs) {
 			return rhs + lhs;
 		}
-		
-		template <typename T>
-		class _ptr_vec_const_ritr;
 	} // namespace detail
 } // namespace ptr_vec
