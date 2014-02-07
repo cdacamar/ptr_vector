@@ -12,19 +12,20 @@ class ptr_vector {
 	std::vector<std::unique_ptr<T>, Alloc> _vec;
 	using _ptr_t = std::unique_ptr<T>;
 public:
-	using value_type      = T;
-	using allocator_type  = Alloc;
-	using size_type       = typename std::vector<std::unique_ptr<T>>::size_type;
-	using difference_type = typename std::vector<std::unique_ptr<T>>::difference_type;
-	using reference       = T&;
-	using const_reference = const T&;
-	using pointer         = T*;
-	using const_pointer   = const T*;
-	using iterator        = typename detail::_ptr_vec_itr<T>;
-	using const_iterator  = typename detail::_ptr_vec_const_itr<T>;
+	using value_type             = T;
+	using allocator_type         = Alloc;
+	using size_type              = typename std::vector<std::unique_ptr<T>>::size_type;
+	using difference_type        = typename std::vector<std::unique_ptr<T>>::difference_type;
+	using reference              = T&;
+	using const_reference        = const T&;
+	using pointer                = T*;
+	using const_pointer          = const T*;
+	using iterator               = typename detail::_ptr_vec_itr<T>;
+	using const_iterator         = typename detail::_ptr_vec_const_itr<T>;
+	using reverse_iterator       = std::reverse_iterator<iterator>;
+	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 	ptr_vector(): _vec() { }
-	ptr_vector(std::size_t size): _vec(size) { }
 	ptr_vector(const ptr_vector&) = delete; // no copy semantics
 	ptr_vector(ptr_vector&&) noexcept = default;
 
@@ -60,6 +61,12 @@ public:
 	const_iterator end() const noexcept {return cend();}
 	const_iterator cbegin() const noexcept {return const_iterator(_vec.cbegin());}
 	const_iterator cend() const noexcept {return const_iterator(_vec.cend());}
+	reverse_iterator rbegin() noexcept {return reverse_iterator(end());}
+	reverse_iterator rend() noexcept {return reverse_iterator(begin());}
+	const_reverse_iterator rbegin() const noexcept {return crbegin();}
+	const_reverse_iterator rend() const noexcept {return crend();}
+	const_reverse_iterator crbegin() const noexcept {return const_reverse_iterator(cend());}
+	const_reverse_iterator crend() const noexcept {return const_reverse_iterator(cbegin());}
 
 	bool empty() const noexcept {return _vec.empty();}
 	size_type size() const noexcept {return _vec.size();}
@@ -123,7 +130,7 @@ public:
 	
 	void pop_back() {_vec.pop_back();}
 	
-	void resize(size_type count, T value = T{}) {
+	void resize(size_type count, const_reference value) { // capture by const ref so we can instantiate a vector of an abstract type
 		if (_vec.size() > count) {
 			for (size_type n = _vec.size() - count;n != 0;--n) {
 				pop_back();
@@ -148,8 +155,16 @@ public:
 	
 	template <typename... Args>
 	void emplace_reset_at(std::size_t pos, Args&&... args) {_vec.at(pos).reset(new value_type(std::forward<Args>(args)...));}
-	template <typename U, typename... Args>
+	template <typename U, typename... Args> // U must be implicitly convertable to T
 	void emplace_reset_at(std::size_t pos, Args&&... args) {_vec.at(pos).reset(new U(std::forward<Args>(args)...));}
+	
+	void push_back_own(pointer value) {if (value != nullptr) _vec.emplace_back(value);}
+	template <typename U> // U must be implicitly convertable to T
+	void push_back_own(typename std::remove_reference<U&>::type* value) {if (value != nullptr) _vec.emplace_back(value);}
+	
+	iterator insert_own(iterator itr, pointer value) {if (value != nullptr) iterator{_vec.emplace(itr._itr, value)};}
+	template <typename U> // U must be implicitly convertable to T
+	iterator insert_own(iterator itr, typename std::remove_reference<U&>::type* value) {if (value != nullptr) iterator{_vec.emplace(itr._itr, value)};}
 };
 	namespace detail {
 		template <typename T>
@@ -253,5 +268,8 @@ public:
 		_ptr_vec_const_itr<T> operator+(std::size_t lhs, const _ptr_vec_const_itr<T>& rhs) {
 			return rhs + lhs;
 		}
+		
+		template <typename T>
+		class _ptr_vec_const_ritr;
 	} // namespace detail
 } // namespace ptr_vec
