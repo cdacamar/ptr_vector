@@ -39,7 +39,7 @@ public:
    ptr_vector& operator=(ptr_vector&& sink) = default;
 
    template <typename U>
-   ptr_vector& operator=(const ptr_vector&) = delete;
+   ptr_vector& operator=(const ptr_vector<U>&) = delete;
 
    template <typename U> // U must be implicitly convertable to T
    ptr_vector& operator=(ptr_vector<U>&& sink) noexcept {_vec = std::move(sink);return *this;}
@@ -47,8 +47,8 @@ public:
    reference at(std::size_t i) {return *_vec.at(i);}
    const_reference at(std::size_t i) const {return *_vec.at(i);}
 
-   reference operator[](std::size_t i) noexcept {return *_vec[i];}
-   const_reference operator[](std::size_t i) const noexcept {return *_vec[i];}
+   reference operator[](std::size_t i) {return *_vec[i];}
+   const_reference operator[](std::size_t i) const {return *_vec[i];}
 
    reference back() {return *_vec.back();}
    const_reference back() const {return *_vec.back();}
@@ -217,7 +217,7 @@ namespace detail {
       difference_type operator-(const _ptr_vec_itr& rhs) const noexcept {return _itr - rhs._itr;}
       reference operator[](std::size_t n) noexcept {return *_itr[n];}
       bool operator<(const _ptr_vec_itr& rhs) const noexcept {return _itr < rhs._itr;}
-      bool operator>(const _ptr_vec_itr& rhs) const noexcept {return _itr > rhs._itr;}
+      bool operator>(const _ptr_vec_itr& rhs) const noexcept {return rhs < *this;}
       bool operator<=(const _ptr_vec_itr& rhs) const noexcept {return !(*this > rhs);}
       bool operator>=(const _ptr_vec_itr& rhs) const noexcept {return !(*this < rhs);}
    };
@@ -268,7 +268,7 @@ namespace detail {
       difference_type operator-(const _ptr_vec_const_itr& rhs) const noexcept {return _citr - rhs._citr;}
       reference operator[](std::size_t n) noexcept {return *_citr[n];}
       bool operator<(const _ptr_vec_const_itr& rhs) const noexcept {return _citr < rhs._citr;}
-      bool operator>(const _ptr_vec_const_itr& rhs) const noexcept {return _citr > rhs._citr;}
+      bool operator>(const _ptr_vec_const_itr& rhs) const noexcept {return rhs < *this;}
       bool operator<=(const _ptr_vec_const_itr& rhs) const noexcept {return !(*this > rhs);}
       bool operator>=(const _ptr_vec_const_itr& rhs) const noexcept {return !(*this < rhs);}
    };
