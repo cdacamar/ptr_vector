@@ -1,0 +1,1 @@
+This is the repository for a simple ptr_vector. Much like ```boost::ptr_vector```, except this one is meant to be more STL friendly and, unlike ```boost::ptr_vector```, it's not just an adaptor it's a full featured container complete with an iterator interface.
